@@ -206,10 +206,10 @@ export default function DiscoverScreen() {
     if (h > 0) setHeroHeight(h);
   }, []);
 
-  // Spacer 高度 = Hero 实际高度 - 固定重叠量
-  const spacerHeight = heroHeight - HERO_OVERLAP;
+  // 动画过渡区域 = Hero 高度 - 重叠量
+  const animRange = heroHeight - HERO_OVERLAP;
 
-  // 滚动进度：0 = 顶部（Hero 完全可见），1 = 滚动到 spacerHeight（Hero 被完全覆盖）
+  // 滚动进度：0 = 顶部（Hero 完全可见），1 = Hero 被内容完全覆盖
   const [scrollProgress, setScrollProgress] = useState(0);
   // 记录实际滚动偏移量（用于 Hero 视差位移）
   const [scrollOffsetY, setScrollOffsetY] = useState(0);
@@ -217,10 +217,10 @@ export default function DiscoverScreen() {
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = e.nativeEvent.contentOffset.y;
     const clamped = Math.max(offsetY, 0);
-    const progress = Math.min(clamped / spacerHeight, 1);
+    const progress = Math.min(clamped / animRange, 1);
     setScrollProgress(progress);
     setScrollOffsetY(clamped);
-  }, [spacerHeight]);
+  }, [animRange]);
 
   // Hero 内容的动态样式：随滚动缩小 + 模糊
   const heroScale = 1 - scrollProgress * 0.15; // 1.0 → 0.85
@@ -228,151 +228,13 @@ export default function DiscoverScreen() {
   const heroOpacity = 1 - scrollProgress * 0.3; // 1.0 → 0.7
   // Hero 背景图：默认 1.1 倍放大，上滑时逐渐缩回 1.0
   const heroBgScale = 1.1 - scrollProgress * 0.1; // 1.1 → 1.0
-  // Hero 整体视差位移：以内容滚动速度的 1/2 向上移动
-  const heroTranslateY = -(scrollOffsetY * 0.5);
+  // Hero 视差：ScrollView 内容滚动 100px 时，Hero 只移动 50px（反向补偿一半）
+  const heroTranslateY = scrollOffsetY * 0.5;
 
   return (
     <MysticalBackground variant="full" showTotem showGlow={false} totemImageSource={totemPattern} totemBottomImageSource={totemPatternBottom}>
 
-      {/* ===== 层 1: Hero 卡片 — 固定在底层，不跟随滚动，半速视差上移 ===== */}
-      <YStack
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        onLayout={handleHeroLayout}
-        // @ts-ignore web-only
-        style={Platform.OS === 'web' ? {
-          transform: `translateY(${heroTranslateY}px)`,
-          willChange: 'transform',
-        } : {
-          transform: [{ translateY: heroTranslateY }],
-        }}
-      >
-        <YStack overflow="hidden">
-          <ImageBackground
-            source={cardSolarSystemBg}
-            style={{ width: '100%', minHeight: '100%' }}
-            resizeMode="cover"
-            imageStyle={{
-              width: '100%',
-              height: '100%',
-              ...(Platform.OS === 'web' ? {
-                objectFit: 'cover',
-                transform: `scale(${heroBgScale})`,
-                filter: `blur(${heroBlur}px)`,
-              } : {
-                transform: [{ scale: heroBgScale }],
-              }),
-            } as any}
-          >
-            <YStack flex={1} backgroundColor="transparent" position="relative">
-              {/* 50%黑色遮罩层 */}
-              <YStack
-                position="absolute" top={0} bottom={0} left={0} right={0}
-                backgroundColor="rgba(0, 0, 0, 0.50)"
-                zIndex={0}
-              />
-              {/* 底部渐变遮罩：透明 → 金色 */}
-              <YStack
-                position="absolute" top={0} bottom={0} left={0} right={0}
-                zIndex={1}
-                // @ts-ignore web-only
-                style={{ 
-                  backgroundImage: `linear-gradient(to bottom, 
-                    transparent 0%, 
-                    transparent 40%, 
-                    rgba(122, 77, 39, 0.6) 60%, 
-                    rgba(122, 77, 39, 0.9) 80%, 
-                    rgba(122, 77, 39, 1) 95%,
-                    #7A4D27 100%
-                  )`,
-                  pointerEvents: 'none',
-                }}
-              />
-              
-              {/* 卡片内容 — 随滚动缩小 + 模糊 */}
-              <YStack 
-                alignItems="center"
-                paddingHorizontal={layout.card.paddingLg} 
-                paddingTop={safeArea.paddingTop + spacing.md} 
-                paddingBottom={layout.card.paddingLg + spacing.xxl}
-                space={spacing.lg}
-                zIndex={2}
-                // @ts-ignore web-only
-                style={Platform.OS === 'web' ? {
-                  transform: `scale(${heroScale})`,
-                  filter: `blur(${heroBlur}px)`,
-                  opacity: heroOpacity,
-                  transition: 'none',
-                  willChange: 'transform, filter, opacity',
-                } : {
-                  transform: [{ scale: heroScale }],
-                  opacity: heroOpacity,
-                }}
-              >
-                {/* 1. 头像 */}
-                <Avatar size="xl" source={avatarPortrait} showBorder={false} />
-
-                {/* 2. 标题 */}
-                <Text fontFamily="$heading" fontSize={fontSize.base} fontWeight="400" color={palette.gold200} textAlign="center" numberOfLines={1}>
-                  Overall Energy on Feb 8, 2026
-                </Text>
-
-                {/* 3. 能量值 */}
-                <Text fontFamily="$mono" fontSize={fs(56)} fontWeight="700" color={palette.gold50}>
-                  85%
-                </Text>
-
-                {/* 4. 描述 */}
-                <Text 
-                  fontFamily="$body" 
-                  fontSize={fontSize.base} 
-                  color={palette.gold200} 
-                  lineHeight={fs(22)} 
-                  textAlign="center"
-                  maxWidth={wp(80)}
-                >
-                  The stars align in your favor today. Trust your intuition and embrace new opportunities that come your way.
-                </Text>
-
-                {/* 5. Ask Freya 按钮 — 金色渐变立体效果 + 点击动画 */}
-                <Pressable 
-                  onPress={() => router.push('/chat')}
-                  // @ts-ignore web-only
-                  style={({ pressed }: { pressed: boolean }) => ({
-                    height: s(48),
-                    paddingHorizontal: s(32),
-                    borderRadius: s(24),
-                    backgroundImage: pressed
-                      ? `linear-gradient(180deg, ${palette.gold500} 0%, ${palette.gold600} 50%, ${palette.gold800} 100%)`
-                      : `linear-gradient(180deg, ${palette.gold300} 0%, ${palette.gold500} 50%, ${palette.gold700} 100%)`,
-                    borderWidth: 1,
-                    borderTopColor: pressed ? 'rgba(255, 248, 240, 0.15)' : 'rgba(255, 248, 240, 0.4)',
-                    borderLeftColor: 'rgba(255, 248, 240, 0.15)',
-                    borderRightColor: 'rgba(255, 248, 240, 0.15)',
-                    borderBottomColor: 'rgba(90, 60, 30, 0.6)',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: pressed
-                      ? 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
-                      : '0 2px 8px rgba(196, 154, 108, 0.4), inset 0 1px 0 rgba(255, 248, 240, 0.25)',
-                    transform: pressed ? 'scale(0.95)' : 'scale(1)',
-                    transition: 'transform 0.1s ease, box-shadow 0.1s ease, background-image 0.1s ease',
-                  })}
-                >
-                  <Text fontFamily="$heading" fontSize={fs(15)} fontWeight="700" color={palette.bgDeep}>
-                    Ask Freya
-                  </Text>
-                </Pressable>
-              </YStack>
-            </YStack>
-          </ImageBackground>
-        </YStack>
-      </YStack>
-
-      {/* ===== 层 2: 可滚动内容 — 叠在 Hero 上方 ===== */}
+      {/* 所有内容都在 ScrollView 内，Hero 通过 translateY 实现半速视差 */}
       <RNScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
@@ -380,16 +242,149 @@ export default function DiscoverScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {/* 透明占位 Spacer：高度 = Hero实际高度 - 重叠量，确保内容区始终压住 Hero 底部 */}
-        <YStack height={spacerHeight} style={{ pointerEvents: 'none' }} />
-
-        {/* 不透明内容区：向上滑动时覆盖 Hero */}
-        {/* 渐变背景：顶部不透明 → 底部透明 */}
+        {/* ===== Hero 卡片 — 在 ScrollView 内，用 translateY 实现半速视差 ===== */}
         <YStack
+          onLayout={handleHeroLayout}
+          // @ts-ignore web-only
+          style={Platform.OS === 'web' ? {
+            transform: `translateY(${heroTranslateY}px)`,
+            willChange: 'transform',
+          } : {
+            transform: [{ translateY: heroTranslateY }],
+          }}
+        >
+          <YStack overflow="hidden">
+            <ImageBackground
+              source={cardSolarSystemBg}
+              style={{ width: '100%', minHeight: '100%' }}
+              resizeMode="cover"
+              imageStyle={{
+                width: '100%',
+                height: '100%',
+                ...(Platform.OS === 'web' ? {
+                  objectFit: 'cover',
+                  transform: `scale(${heroBgScale})`,
+                  filter: `blur(${heroBlur}px)`,
+                } : {
+                  transform: [{ scale: heroBgScale }],
+                }),
+              } as any}
+            >
+              <YStack flex={1} backgroundColor="transparent" position="relative">
+                {/* 50%黑色遮罩层 */}
+                <YStack
+                  position="absolute" top={0} bottom={0} left={0} right={0}
+                  backgroundColor="rgba(0, 0, 0, 0.50)"
+                  zIndex={0}
+                />
+                {/* 底部渐变遮罩：透明 → 金色 */}
+                <YStack
+                  position="absolute" top={0} bottom={0} left={0} right={0}
+                  zIndex={1}
+                  // @ts-ignore web-only
+                  style={{ 
+                    backgroundImage: `linear-gradient(to bottom, 
+                      transparent 0%, 
+                      transparent 40%, 
+                      rgba(122, 77, 39, 0.6) 60%, 
+                      rgba(122, 77, 39, 0.9) 80%, 
+                      rgba(122, 77, 39, 1) 95%,
+                      #7A4D27 100%
+                    )`,
+                    pointerEvents: 'none',
+                  }}
+                />
+                
+                {/* 卡片内容 — 随滚动缩小 + 模糊 */}
+                <YStack 
+                  alignItems="center"
+                  paddingHorizontal={layout.card.paddingLg} 
+                  paddingTop={safeArea.paddingTop + spacing.md} 
+                  paddingBottom={layout.card.paddingLg + spacing.xxl}
+                  space={spacing.lg}
+                  zIndex={2}
+                  // @ts-ignore web-only
+                  style={Platform.OS === 'web' ? {
+                    transform: `scale(${heroScale})`,
+                    filter: `blur(${heroBlur}px)`,
+                    opacity: heroOpacity,
+                    transition: 'none',
+                    willChange: 'transform, filter, opacity',
+                  } : {
+                    transform: [{ scale: heroScale }],
+                    opacity: heroOpacity,
+                  }}
+                >
+                  {/* 1. 头像 */}
+                  <Avatar size="xl" source={avatarPortrait} showBorder={false} />
+
+                  {/* 2. 标题 */}
+                  <Text fontFamily="$heading" fontSize={fontSize.base} fontWeight="400" color={palette.gold200} textAlign="center" numberOfLines={1}>
+                    Overall Energy on Feb 8, 2026
+                  </Text>
+
+                  {/* 3. 能量值 */}
+                  <Text fontFamily="$mono" fontSize={fs(56)} fontWeight="700" color={palette.gold50}>
+                    85%
+                  </Text>
+
+                  {/* 4. 描述 */}
+                  <Text 
+                    fontFamily="$body" 
+                    fontSize={fontSize.base} 
+                    color={palette.gold200} 
+                    lineHeight={fs(22)} 
+                    textAlign="center"
+                    maxWidth={wp(80)}
+                  >
+                    The stars align in your favor today. Trust your intuition and embrace new opportunities that come your way.
+                  </Text>
+
+                  {/* 5. Ask Freya 按钮 — 金色渐变立体效果 + 点击动画 */}
+                  <Pressable 
+                    onPress={() => router.push('/chat')}
+                    // @ts-ignore web-only
+                    style={({ pressed }: { pressed: boolean }) => ({
+                      height: s(48),
+                      paddingHorizontal: s(32),
+                      borderRadius: s(24),
+                      backgroundImage: pressed
+                        ? `linear-gradient(180deg, ${palette.gold500} 0%, ${palette.gold600} 50%, ${palette.gold800} 100%)`
+                        : `linear-gradient(180deg, ${palette.gold300} 0%, ${palette.gold500} 50%, ${palette.gold700} 100%)`,
+                      borderWidth: 1,
+                      borderTopColor: pressed ? 'rgba(255, 248, 240, 0.15)' : 'rgba(255, 248, 240, 0.4)',
+                      borderLeftColor: 'rgba(255, 248, 240, 0.15)',
+                      borderRightColor: 'rgba(255, 248, 240, 0.15)',
+                      borderBottomColor: 'rgba(90, 60, 30, 0.6)',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: pressed
+                        ? 'inset 0 2px 4px rgba(0, 0, 0, 0.3)'
+                        : '0 2px 8px rgba(196, 154, 108, 0.4), inset 0 1px 0 rgba(255, 248, 240, 0.25)',
+                      transform: pressed ? 'scale(0.95)' : 'scale(1)',
+                      transition: 'transform 0.1s ease, box-shadow 0.1s ease, background-image 0.1s ease',
+                    })}
+                  >
+                    <Text fontFamily="$heading" fontSize={fs(15)} fontWeight="700" color={palette.bgDeep}>
+                      Ask Freya
+                    </Text>
+                  </Pressable>
+                </YStack>
+              </YStack>
+            </ImageBackground>
+          </YStack>
+        </YStack>
+
+        {/* ===== 内容区：负 margin 向上重叠 Hero，自然盖住 Hero ===== */}
+        <YStack
+          position="relative"
+          zIndex={1}
           borderTopLeftRadius={s(24)}
           borderTopRightRadius={s(24)}
           borderTopWidth={1}
           borderColor={palette.gold500}
+          marginTop={-HERO_OVERLAP}
           // @ts-ignore
           style={{
             backgroundImage: `linear-gradient(to bottom, 
