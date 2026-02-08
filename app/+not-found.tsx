@@ -27,6 +27,12 @@ export default function NotFoundScreen() {
     });
     fetch('http://127.0.0.1:7242/ingest/5686af05-bc6a-46e0-a206-faf10bfcef99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/+not-found.tsx:useEffect',message:'NotFound route hit',data:{pathname,searchParams,isTelegram,url:typeof window!=='undefined'?window.location.href:null,origin:typeof window!=='undefined'?window.location.origin:null},timestamp:Date.now(),runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
     // #endregion
+    // 兼容 /freyav3 这种 base path 被当成路由的场景（Telegram 内嵌）
+    if (pathname && pathname.startsWith('/freyav3')) {
+      const stripped = pathname.replace(/^\/freyav3/, '') || '/';
+      router.replace(stripped);
+      return;
+    }
     // 打印调试信息
     console.log('[NotFound] Current pathname:', pathname);
     console.log('[NotFound] Full URL:', typeof window !== 'undefined' ? window.location.href : 'N/A');
