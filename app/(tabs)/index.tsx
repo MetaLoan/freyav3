@@ -222,44 +222,6 @@ export default function DiscoverScreen() {
                   position="absolute" top={0} bottom={0} left={0} right={0}
                   backgroundColor="rgba(0, 0, 0, 0.50)"
                 />
-                {/* 顶部渐变模糊 - 复制图片+模糊+遮罩 */}
-                <YStack
-                  position="absolute" top={0} left={0} right={0} height="30%"
-                  overflow="hidden"
-                  // @ts-ignore - React Native Web 支持
-                  style={{
-                    maskImage: `linear-gradient(to bottom, black 0%, black 30%, transparent 100%)`,
-                    WebkitMaskImage: `linear-gradient(to bottom, black 0%, black 30%, transparent 100%)`,
-                  }}
-                >
-                  <RNImage
-                    source={cardSolarSystemBg}
-                    // @ts-ignore - React Native Web 支持
-                    style={{
-                      width: '100%',
-                      height: vs(480),
-                      filter: 'blur(15px)',
-                      transform: [{ scale: 1.1 }],
-                    }}
-                    resizeMode="cover"
-                  />
-                </YStack>
-                
-                {/* 顶部渐变遮罩：#7A4D27 → 透明 */}
-                <YStack
-                  position="absolute" top={0} left={0} right={0} height="20%"
-                  // @ts-ignore - React Native Web 支持
-                  style={{ 
-                    backgroundImage: `linear-gradient(to bottom, 
-                      #7A4D27 0%, 
-                      rgba(122, 77, 39, 0.80) 30%, 
-                      rgba(122, 77, 39, 0.50) 60%, 
-                      rgba(122, 77, 39, 0.20) 80%, 
-                      transparent 100%
-                    )` 
-                  }}
-                />
-                
                 {/* 底部渐变遮罩：透明 → #7A4D27 */}
                 <YStack
                   position="absolute" top={0} bottom={0} left={0} right={0}

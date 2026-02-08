@@ -77,7 +77,9 @@ function TotemPattern({
       const bottomNavHeight = layout.bottomNav.height + layout.bottomNav.paddingBottom;
       const topValue = isBottom ? undefined : 0;
       const bottomValue = isBottom ? -bottomNavHeight : undefined;
-      const circleCy = isBottom ? width : 0;
+      // 底部图腾向下移动一半后，遮罩圆形应该在图片的下半部分（底部）显示
+      // 由于遮罩 SVG 也向下移动了 width/2，所以 cy 调整为 width/2（相对于移动后的坐标系）
+      const circleCy = isBottom ? width / 2 : 0;
       
       return (
         <YStack
@@ -90,6 +92,7 @@ function TotemPattern({
           overflow="hidden"
         >
           {/* 1. 底层：图腾图片（全屏显示，使用滤色混合模式） */}
+          {/* 底部图腾向下移动图片高度的一半，只露出一半 */}
           <Image
             source={imageSource}
             resizeMode="contain"
@@ -99,15 +102,22 @@ function TotemPattern({
               opacity: opacity,
               // @ts-ignore - React Native Web 支持 blendMode
               mixBlendMode: 'screen',
+              // 底部图腾向下移动一半，只露出一半
+              ...(isBottom ? { marginTop: width / 2 } : {}),
             }}
           />
           
           {/* 2. 顶层遮罩：背景色底板 + 高斯模糊的“洞” */}
+          {/* 底部图腾的遮罩也需要向下移动一半，与图片对齐 */}
           <Svg
             width={width}
             height={width}
             viewBox={`0 0 ${width} ${width}`}
-            style={{ position: 'absolute', top: 0, left: 0 }}
+            style={{ 
+              position: 'absolute', 
+              top: isBottom ? width / 2 : 0, 
+              left: 0 
+            }}
           >
             <Defs>
               {/* 定义“洞”的形状和模糊效果 */}
@@ -121,10 +131,11 @@ function TotemPattern({
                 <rect x="0" y="0" width={width} height={width} fill="white" />
                 
                 {/* 在中间挖一个黑色的洞（显示图腾），带模糊边缘 */}
-                {/* 这里的圆形参数与光照圆形一致，根据位置调整 cy */}
+                {/* 底部图腾：图片向下移动一半后，圆形应该在图片的下半部分（底部）显示 */}
+                {/* 由于遮罩 SVG 也向下移动了 width/2，圆形的 cy 需要调整为 0（相对于移动后的坐标系，对应图片底部） */}
                 <SvgCircle
                   cx={width / 2}
-                  cy={circleCy}
+                  cy={isBottom ? 0 : circleCy}
                   r={width * 0.4}
                   fill="black"
                   filter={`url(#hole-blur-${lightMaskId})`}
