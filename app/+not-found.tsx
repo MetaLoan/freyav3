@@ -30,7 +30,7 @@ export default function NotFoundScreen() {
   return (
     <YStack
       flex={1}
-      backgroundColor={palette.bg}
+      backgroundColor={palette.bgDeep}
       alignItems="center"
       justifyContent="center"
       padding="$4"
