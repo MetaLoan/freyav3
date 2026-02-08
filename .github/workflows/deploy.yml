@@ -39,6 +39,13 @@ jobs:
           CI: true
           EXPO_PUBLIC_ENV: production
 
+      - name: List build output
+        run: |
+          echo "Build output directory contents:"
+          ls -la dist/ || echo "dist/ directory not found"
+          echo "Checking for index.html:"
+          ls -la dist/*.html || echo "No HTML files found"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
