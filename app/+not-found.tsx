@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { router, usePathname, useGlobalSearchParams, useRootNavigationState } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { router, usePathname } from 'expo-router';
 import { YStack, Text } from 'tamagui';
 import { palette } from '../src/config/theme';
 
@@ -8,15 +8,20 @@ import { palette } from '../src/config/theme';
  * 
  * 处理未匹配的路由：
  * - 在 GitHub Pages 子目录部署时，可能会出现路径问题
- * - 尝试重定向到首页
+ * - 延迟后重定向到首页，确保 Root Layout 完全挂载
  */
 export default function NotFoundScreen() {
   const pathname = usePathname();
-  const searchParams = useGlobalSearchParams();
-  const rootNavState = useRootNavigationState();
+  const [canNavigate, setCanNavigate] = useState(false);
+
+  // 延迟 500ms 确保 Root Layout 完全挂载
+  useEffect(() => {
+    const timer = setTimeout(() => setCanNavigate(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
-    if (!rootNavState?.key) return;
+    if (!canNavigate) return;
 
     // 兼容 /freyav3 这种 base path 被当成路由的场景（Telegram 内嵌）
     if (pathname && pathname.startsWith('/freyav3')) {
@@ -25,7 +30,7 @@ export default function NotFoundScreen() {
       return;
     }
     router.replace('/');
-  }, [pathname, rootNavState?.key, searchParams]);
+  }, [canNavigate, pathname]);
 
   return (
     <YStack
