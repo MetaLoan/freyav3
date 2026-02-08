@@ -2,6 +2,9 @@
   "expo": {
     "name": "Freya V3",
     "slug": "freya-v3",
+    "experiments": {
+      "baseUrl": "/freyav3"
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
