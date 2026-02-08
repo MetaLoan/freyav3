@@ -105,7 +105,12 @@ export const initTelegramApp = (): void => {
   webApp.ready();
 
   // 展开到全屏（必须先调用 ready()）
-  webApp.expand();
+  try {
+    webApp.expand();
+    console.log('✅ Telegram expanded');
+  } catch (e) {
+    console.warn('⚠️ Telegram expand failed:', e);
+  }
 
   // 设置全屏模式相关配置
   // 禁用关闭确认（全屏模式下通常不需要）
@@ -120,10 +125,18 @@ export const initTelegramApp = (): void => {
       webApp.requestFullscreen();
       console.log('✅ Telegram fullscreen mode requested');
     } catch (e) {
-      console.warn('⚠️ Telegram requestFullscreen not supported:', e);
+      console.warn('⚠️ Telegram requestFullscreen failed:', e);
     }
   } else {
     console.log('ℹ️ Telegram requestFullscreen API not available (SDK < 8.0)');
+  }
+
+  // 确保头部颜色与背景一致
+  if (webApp.setHeaderColor) {
+    webApp.setHeaderColor('#131110'); // bgDeep
+  }
+  if (webApp.setBackgroundColor) {
+    webApp.setBackgroundColor('#131110'); // bgDeep
   }
 
   // 同步安全区域到 CSS 变量
@@ -138,6 +151,11 @@ export const initTelegramApp = (): void => {
       syncSafeAreaToCSSVariables();
     });
     webApp.onEvent('contentSafeAreaChanged' as any, () => {
+      syncSafeAreaToCSSVariables();
+    });
+    // 监听全屏状态变化
+    webApp.onEvent('fullscreenChanged' as any, () => {
+      console.log('📱 Telegram fullscreen changed:', webApp.isFullscreen);
       syncSafeAreaToCSSVariables();
     });
   }

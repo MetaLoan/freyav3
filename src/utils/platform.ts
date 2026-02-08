@@ -20,12 +20,12 @@ export const isNative = isIOS || isAndroid;
 
 /**
  * 是否在 Telegram Mini App 环境中运行
- * 通过检测 window.Telegram.WebApp.initData 来判断
+ * 只要 window.Telegram.WebApp 存在即视为 TMA 环境
  */
 export const isTelegram =
   isWeb &&
   typeof window !== 'undefined' &&
-  !!(window as any).Telegram?.WebApp?.initData;
+  !!(window as any).Telegram?.WebApp;
 
 /**
  * 获取 Telegram WebApp 实例（带完整 TypeScript 类型）
