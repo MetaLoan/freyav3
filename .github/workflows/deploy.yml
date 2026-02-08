@@ -29,8 +29,8 @@ jobs:
       - name: Setup Expo CLI
         run: npm install -g @expo/cli
 
-      - name: Build web app
-        run: npx expo export:web
+      - name: Build web app (Metro bundler)
+        run: npx expo export -p web
         env:
           CI: true
           EXPO_PUBLIC_ENV: production
@@ -39,7 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-build
-          path: web-build/
+          path: dist/
           retention-days: 7
 
   test:
