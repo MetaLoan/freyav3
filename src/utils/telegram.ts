@@ -104,16 +104,26 @@ export const initTelegramApp = (): void => {
   // 通知 Telegram 应用已就绪
   webApp.ready();
 
-  // 展开到全屏
+  // 展开到全屏（必须先调用 ready()）
   webApp.expand();
 
-  // 尝试请求全屏模式 (SDK 8.0+)
+  // 设置全屏模式相关配置
+  // 禁用关闭确认（全屏模式下通常不需要）
+  if (typeof webApp.enableClosingConfirmation === 'function') {
+    webApp.enableClosingConfirmation(false);
+  }
+
+  // 请求全屏模式 (SDK 8.0+)
+  // 注意：requestFullscreen() 需要在 expand() 之后调用
   if (typeof webApp.requestFullscreen === 'function') {
     try {
       webApp.requestFullscreen();
+      console.log('✅ Telegram fullscreen mode requested');
     } catch (e) {
-      console.warn('Telegram requestFullscreen not supported:', e);
+      console.warn('⚠️ Telegram requestFullscreen not supported:', e);
     }
+  } else {
+    console.log('ℹ️ Telegram requestFullscreen API not available (SDK < 8.0)');
   }
 
   // 同步安全区域到 CSS 变量
