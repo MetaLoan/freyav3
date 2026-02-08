@@ -36,9 +36,10 @@ function fixPathsInFile(filePath) {
   content = content.replace(/\/_expo\/static/g, '/freyav3/_expo/static');
   content = content.replace(/\/assets\//g, '/freyav3/assets/');
   
-  // 修复 Expo Router 的路由路径
-  // 确保所有以 / 开头的路径都加上 /freyav3 前缀（除了已经是 /freyav3 的）
-  content = content.replace(/(["'])\/(?!freyav3)([^"']+)(["'])/g, '$1/freyav3/$2$3');
+  // 修复 Expo Router 的路由路径（只修复特定的路径模式）
+  // 修复 /(tabs) 这样的路由路径
+  content = content.replace(/href=["']\/(tabs|chat|profile|settings|birth-chart|favorites|member)/g, 'href="/freyav3/$1');
+  content = content.replace(/pathname["']?\s*[:=]\s*["']\//g, 'pathname="/freyav3/');
   
   if (content !== originalContent) {
     fs.writeFileSync(filePath, content, 'utf8');
