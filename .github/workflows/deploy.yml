@@ -12,6 +12,10 @@ jobs:
   build:
     name: Build Web App
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     
     steps:
       - name: Checkout code
@@ -49,6 +53,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           cname: false
+          force_orphan: true
 
   test:
     name: Run Tests

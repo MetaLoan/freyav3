@@ -55,10 +55,22 @@ https://metaloan.github.io/freyav3/
 
 ### 启用 GitHub Pages
 
-1. 进入 GitHub 仓库设置
-2. 找到 "Pages" 设置
+1. 进入 GitHub 仓库设置：https://github.com/MetaLoan/freyav3/settings
+2. 找到左侧菜单的 "Pages" 设置
 3. Source 选择 "GitHub Actions"
 4. 保存设置
+
+### 权限设置
+
+如果遇到 403 权限错误，请确保：
+
+1. 进入仓库 Settings → Actions → General
+2. 找到 "Workflow permissions"
+3. 选择 "Read and write permissions"
+4. 勾选 "Allow GitHub Actions to create and approve pull requests"
+5. 保存设置
+
+工作流已配置 `permissions`，应该可以正常部署。
 
 ## 其他部署选项
 
