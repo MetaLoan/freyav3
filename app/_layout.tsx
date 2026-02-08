@@ -22,6 +22,8 @@ import {
 } from '@expo-google-fonts/playfair-display';
 import { AppTamaguiProvider } from '../src/providers/TamaguiProvider';
 import { isTelegram } from '../src/utils/platform';
+import { pushDebugLog } from '../src/utils/debugOverlay';
+import { DebugOverlay } from '../src/components/ui/DebugOverlay';
 
 // 在字体加载完成前保持 Splash Screen 可见
 SplashScreen.preventAutoHideAsync();
@@ -52,6 +54,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     // #region agent log
+    pushDebugLog('App boot URL snapshot', {
+      platform: Platform.OS,
+      isTelegram,
+      url: typeof window !== 'undefined' ? window.location.href : null,
+      pathname: typeof window !== 'undefined' ? window.location.pathname : null,
+      search: typeof window !== 'undefined' ? window.location.search : null,
+      hash: typeof window !== 'undefined' ? window.location.hash : null,
+    });
     fetch('http://127.0.0.1:7242/ingest/5686af05-bc6a-46e0-a206-faf10bfcef99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/_layout.tsx:useEffect',message:'App boot URL snapshot',data:{platform:Platform.OS,isTelegram,url:typeof window!=='undefined'?window.location.href:null,pathname:typeof window!=='undefined'?window.location.pathname:null,search:typeof window!=='undefined'?window.location.search:null,hash:typeof window!=='undefined'?window.location.hash:null},timestamp:Date.now(),runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
     // #endregion
     let cancelled = false;
@@ -110,6 +120,7 @@ export default function RootLayout() {
       <AppTamaguiProvider>
         {/* 暗色主题默认使用浅色状态栏文字 */}
         <StatusBar style="light" />
+        <DebugOverlay />
         <Stack
           screenOptions={{
             headerShown: false,

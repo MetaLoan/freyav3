@@ -1,4 +1,5 @@
 import { isTelegram, getTelegramWebApp } from './platform';
+import { pushDebugLog } from './debugOverlay';
 
 /**
  * Telegram Mini App 工具函数
@@ -102,6 +103,13 @@ export const initTelegramApp = (): void => {
   if (!webApp) return;
 
   // #region agent log
+  pushDebugLog('Telegram WebApp init', {
+    platform: webApp.platform,
+    isFullscreen: !!webApp.isFullscreen,
+    hasRequestFullscreen: typeof webApp.requestFullscreen === 'function',
+    hasProxy: typeof (window as any).TelegramWebviewProxy?.postEvent === 'function',
+    hasParent: typeof window !== 'undefined' && window.parent && window.parent !== window,
+  });
   fetch('http://127.0.0.1:7242/ingest/5686af05-bc6a-46e0-a206-faf10bfcef99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/utils/telegram.ts:initTelegramApp',message:'Telegram WebApp init',data:{platform:webApp.platform,isFullscreen:!!webApp.isFullscreen,hasRequestFullscreen:typeof webApp.requestFullscreen==='function',hasProxy:typeof (window as any).TelegramWebviewProxy?.postEvent==='function',hasParent:typeof window!=='undefined' && window.parent && window.parent!==window},timestamp:Date.now(),runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
   // #endregion
 
