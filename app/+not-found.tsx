@@ -3,7 +3,6 @@ import { router, usePathname, useGlobalSearchParams } from 'expo-router';
 import { YStack, Text } from 'tamagui';
 import { palette } from '../src/config/theme';
 import { isTelegram } from '../src/utils/platform';
-import { pushDebugLog } from '../src/utils/debugOverlay';
 
 /**
  * 404 页面
@@ -17,16 +16,6 @@ export default function NotFoundScreen() {
   const searchParams = useGlobalSearchParams();
 
   useEffect(() => {
-    // #region agent log
-    pushDebugLog('NotFound route hit', {
-      pathname,
-      searchParams,
-      isTelegram,
-      url: typeof window !== 'undefined' ? window.location.href : null,
-      origin: typeof window !== 'undefined' ? window.location.origin : null,
-    });
-    fetch('http://127.0.0.1:7242/ingest/5686af05-bc6a-46e0-a206-faf10bfcef99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/+not-found.tsx:useEffect',message:'NotFound route hit',data:{pathname,searchParams,isTelegram,url:typeof window!=='undefined'?window.location.href:null,origin:typeof window!=='undefined'?window.location.origin:null},timestamp:Date.now(),runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
     // 兼容 /freyav3 这种 base path 被当成路由的场景（Telegram 内嵌）
     if (pathname && pathname.startsWith('/freyav3')) {
       const stripped = pathname.replace(/^\/freyav3/, '') || '/';
