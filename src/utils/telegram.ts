@@ -110,7 +110,7 @@ export const initTelegramApp = (): void => {
   // 设置全屏模式相关配置
   // 禁用关闭确认（全屏模式下通常不需要）
   if (typeof webApp.enableClosingConfirmation === 'function') {
-    webApp.enableClosingConfirmation(false);
+    webApp.enableClosingConfirmation();
   }
 
   // 请求全屏模式 (SDK 8.0+)

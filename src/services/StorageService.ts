@@ -28,7 +28,7 @@ const telegramStorage = {
         resolve(null);
         return;
       }
-      webApp.CloudStorage.getItem(key, (error: any, value: string) => {
+      webApp.CloudStorage.getItem(key, (error: string | null, value?: string) => {
         if (error) {
           console.warn('[StorageService] TMA get error:', error);
           resolve(null);
@@ -80,7 +80,7 @@ const telegramStorage = {
     if (!webApp?.CloudStorage) return;
 
     return new Promise((resolve) => {
-      webApp.CloudStorage.getKeys((error: any, keys: string[]) => {
+      webApp.CloudStorage.getKeys((error: string | null, keys?: string[]) => {
         if (error || !keys?.length) {
           resolve();
           return;
