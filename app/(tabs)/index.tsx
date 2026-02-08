@@ -259,13 +259,26 @@ export default function DiscoverScreen() {
               style={{ width: '100%', minHeight: '100%' }}
               resizeMode="cover"
               imageStyle={{
-                width: '100%',
-                height: '100%',
                 ...(Platform.OS === 'web' ? {
-                  objectFit: 'cover',
-                  transform: `scale(${heroBgScale})`,
-                  filter: `blur(${heroBlur}px)`,
+                  // 默认 110% 点对点渲染，滚动时切换到 GPU scale 动画
+                  ...(scrollProgress === 0 ? {
+                    width: '110%',
+                    height: '110%',
+                    marginLeft: '-5%',
+                    marginTop: '-5%',
+                    objectFit: 'cover',
+                  } : {
+                    width: '110%',
+                    height: '110%',
+                    marginLeft: '-5%',
+                    marginTop: '-5%',
+                    objectFit: 'cover',
+                    transform: `scale(${heroBgScale / 1.1})`,
+                    filter: `blur(${heroBlur}px)`,
+                  }),
                 } : {
+                  width: '100%',
+                  height: '100%',
                   transform: [{ scale: heroBgScale }],
                 }),
               } as any}
