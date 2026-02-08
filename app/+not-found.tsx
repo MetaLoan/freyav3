@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
-import { router, usePathname, useGlobalSearchParams } from 'expo-router';
+import { router, usePathname, useGlobalSearchParams, useRootNavigationState } from 'expo-router';
 import { YStack, Text } from 'tamagui';
 import { palette } from '../src/config/theme';
-import { isTelegram } from '../src/utils/platform';
 
 /**
  * 404 页面
@@ -14,26 +13,19 @@ import { isTelegram } from '../src/utils/platform';
 export default function NotFoundScreen() {
   const pathname = usePathname();
   const searchParams = useGlobalSearchParams();
+  const rootNavState = useRootNavigationState();
 
   useEffect(() => {
+    if (!rootNavState?.key) return;
+
     // 兼容 /freyav3 这种 base path 被当成路由的场景（Telegram 内嵌）
     if (pathname && pathname.startsWith('/freyav3')) {
       const stripped = pathname.replace(/^\/freyav3/, '') || '/';
       router.replace(stripped);
       return;
     }
-    // 打印调试信息
-    console.log('[NotFound] Current pathname:', pathname);
-    console.log('[NotFound] Full URL:', typeof window !== 'undefined' ? window.location.href : 'N/A');
-    
-    // 延迟后重定向到首页
-    const timer = setTimeout(() => {
-      console.log('[NotFound] Redirecting to home...');
-      router.replace('/');
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [pathname]);
+    router.replace('/');
+  }, [pathname, rootNavState?.key, searchParams]);
 
   return (
     <YStack
