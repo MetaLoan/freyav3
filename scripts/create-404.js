@@ -18,6 +18,46 @@ const spa404Html = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <title>Freya V3</title>
+  <style>
+    body {
+      background-color: #131110;
+      color: #F5F0EB;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 3px solid #F5F0EB;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+    .loader::after {
+      content: '';  
+      box-sizing: border-box;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-bottom-color: #C49A6C;
+      animation: rotation 0.5s linear infinite reverse;
+    }
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
   <script type="text/javascript">
     // GitHub Pages SPA 重定向
     // 将 404 页面重定向到 index.html，同时保留路径信息
@@ -33,7 +73,7 @@ const spa404Html = `<!DOCTYPE html>
   </script>
 </head>
 <body>
-  正在加载...
+  <span class="loader"></span>
 </body>
 </html>`;
 

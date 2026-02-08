@@ -112,23 +112,51 @@ export const initTelegramApp = (): void => {
     console.warn('⚠️ Telegram expand failed:', e);
   }
 
+  // 强制全屏模式（绕过 SDK 检查）
+  // 参考：https://core.telegram.org/bots/webapps#web-app-request-fullscreen
+  const forceRequestFullscreen = () => {
+    try {
+      // 方法1: 通过 TelegramWebviewProxy（移动端/桌面端）
+      if ((window as any).TelegramWebviewProxy?.postEvent) {
+        (window as any).TelegramWebviewProxy.postEvent('web_app_request_fullscreen', '');
+        console.log('✅ Sent web_app_request_fullscreen via TelegramWebviewProxy');
+        return true;
+      }
+      
+      // 方法2: 通过 postMessage（Web iframe）
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(
+          JSON.stringify({ eventType: 'web_app_request_fullscreen', eventData: '' }), 
+          '*'
+        );
+        console.log('✅ Sent web_app_request_fullscreen via postMessage');
+        return true;
+      }
+    } catch (err) {
+      console.error('⚠️ Error sending web_app_request_fullscreen:', err);
+    }
+    return false;
+  };
+
   // 设置全屏模式相关配置
   // 禁用关闭确认（全屏模式下通常不需要）
   if (typeof webApp.enableClosingConfirmation === 'function') {
     webApp.enableClosingConfirmation();
   }
 
-  // 请求全屏模式 (SDK 8.0+)
-  // 注意：requestFullscreen() 需要在 expand() 之后调用
-  if (typeof webApp.requestFullscreen === 'function') {
-    try {
-      webApp.requestFullscreen();
-      console.log('✅ Telegram fullscreen mode requested');
-    } catch (e) {
-      console.warn('⚠️ Telegram requestFullscreen failed:', e);
+  // 优先尝试强制全屏
+  if (!forceRequestFullscreen()) {
+    // 如果强制方法失败，回退到 SDK 方法
+    if (typeof webApp.requestFullscreen === 'function') {
+      try {
+        webApp.requestFullscreen();
+        console.log('✅ Telegram fullscreen mode requested (SDK)');
+      } catch (e) {
+        console.warn('⚠️ Telegram requestFullscreen failed:', e);
+      }
+    } else {
+      console.log('ℹ️ Telegram requestFullscreen API not available (SDK < 8.0)');
     }
-  } else {
-    console.log('ℹ️ Telegram requestFullscreen API not available (SDK < 8.0)');
   }
 
   // 确保头部颜色与背景一致
