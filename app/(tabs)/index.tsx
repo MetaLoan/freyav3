@@ -29,7 +29,7 @@ import totemPatternBottom from '../../assets/totem-pattern-bottom.png';
 // @ts-ignore
 import avatarPortrait from '../../assets/avatar-portrait.png';
 // @ts-ignore
-import cardSolarSystemBg from '../../assets/card-solar-system-bg.jpg';
+import cardSolarSystemBg from '../../assets/bg.jpg';
 // @ts-ignore
 import dimensionSpirit from '../../assets/dimension-spirit.png';
 // @ts-ignore
@@ -252,13 +252,17 @@ export default function DiscoverScreen() {
         <YStack overflow="hidden">
           <ImageBackground
             source={cardSolarSystemBg}
-            style={{ width: '100%' }}
+            style={{ width: '100%', minHeight: '100%' }}
             resizeMode="cover"
             imageStyle={{
               width: '100%',
               height: '100%',
               // @ts-ignore web-only
+              objectFit: 'cover',
+              // @ts-ignore web-only
               transform: Platform.OS === 'web' ? `scale(${heroBgScale})` : [{ scale: heroBgScale }],
+              // @ts-ignore web-only
+              filter: Platform.OS === 'web' ? `blur(${heroBlur}px)` : undefined,
             }}
           >
             <YStack flex={1} backgroundColor="transparent" position="relative">
@@ -308,14 +312,14 @@ export default function DiscoverScreen() {
                 {/* 1. 头像 */}
                 <Avatar size="xl" source={avatarPortrait} showBorder={false} />
 
-                {/* 2. 能量值 */}
-                <Text fontFamily="$mono" fontSize={fs(56)} fontWeight="700" color={palette.gold50}>
-                  85%
+                {/* 2. 标题 */}
+                <Text fontFamily="$heading" fontSize={fontSize.base} fontWeight="400" color={palette.gold200} textAlign="center" numberOfLines={1}>
+                  Overall Energy on Feb 8, 2026
                 </Text>
 
-                {/* 3. 标题 */}
-                <Text fontFamily="$heading" fontSize={fontSize.h2} fontWeight="400" color={palette.gold50} textAlign="center">
-                  Prepare for the Future
+                {/* 3. 能量值 */}
+                <Text fontFamily="$mono" fontSize={fs(56)} fontWeight="700" color={palette.gold50}>
+                  85%
                 </Text>
 
                 {/* 4. 描述 */}
