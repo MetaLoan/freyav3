@@ -100,8 +100,10 @@ function TotemPattern({
               width: width,
               height: width,
               opacity: opacity,
-              // @ts-ignore - React Native Web 支持 blendMode
+              // @ts-ignore - React Native Web 支持 blendMode 和 filter
               mixBlendMode: 'screen',
+              // 使用 brightness + contrast 滤镜去除黑色边缘
+              filter: Platform.OS === 'web' ? 'brightness(1.1) contrast(1.2)' : undefined,
               // 底部图腾向下移动一半，只露出一半
               ...(isBottom ? { marginTop: width / 2 } : {}),
             }}
