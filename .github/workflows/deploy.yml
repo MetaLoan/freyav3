@@ -42,6 +42,7 @@ jobs:
         env:
           CI: true
           EXPO_PUBLIC_ENV: production
+          EXPO_PUBLIC_BASE_URL: /freyav3
 
       - name: List build output
         run: |
@@ -49,6 +50,12 @@ jobs:
           ls -la dist/ || echo "dist/ directory not found"
           echo "Checking for index.html:"
           ls -la dist/*.html || echo "No HTML files found"
+
+      - name: Fix paths for GitHub Pages
+        run: node scripts/fix-github-pages-paths.js
+
+      - name: Create 404.html for SPA routing
+        run: node scripts/create-404.js
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
