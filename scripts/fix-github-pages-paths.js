@@ -12,31 +12,40 @@ const distDir = path.join(__dirname, '..', 'dist');
 
 function fixPathsInFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
-  let modified = false;
+  const originalContent = content;
 
   // 修复 HTML 中的绝对路径
   if (filePath.endsWith('.html')) {
-    // 添加 base tag（如果不存在）
+    // 确保 base tag 存在且正确
     if (!content.includes('<base')) {
       content = content.replace(
         '<head>',
         `<head>\n    <base href="/freyav3/">`
       );
-      modified = true;
+    } else {
+      // 更新现有的 base tag
+      content = content.replace(
+        /<base[^>]*>/g,
+        '<base href="/freyav3/">'
+      );
     }
   }
 
   // 修复 JavaScript/CSS 中的绝对路径引用
-  // 将 /_expo/static 改为相对路径
-  content = content.replace(/\/_expo\/static/g, './_expo/static');
-  content = content.replace(/\/assets\//g, './assets/');
+  // 将 /_expo/static 改为 /freyav3/_expo/static
+  content = content.replace(/\/_expo\/static/g, '/freyav3/_expo/static');
+  content = content.replace(/\/assets\//g, '/freyav3/assets/');
   
-  if (content !== fs.readFileSync(filePath, 'utf8')) {
+  // 修复 Expo Router 的路由路径
+  // 确保所有以 / 开头的路径都加上 /freyav3 前缀（除了已经是 /freyav3 的）
+  content = content.replace(/(["'])\/(?!freyav3)([^"']+)(["'])/g, '$1/freyav3/$2$3');
+  
+  if (content !== originalContent) {
     fs.writeFileSync(filePath, content, 'utf8');
-    modified = true;
+    return true;
   }
 
-  return modified;
+  return false;
 }
 
 function walkDir(dir) {
