@@ -92,8 +92,74 @@ export const syncSafeAreaToCSSVariables = (): void => {
 };
 
 /**
+ * 请求 Telegram 全屏模式
+ * 尝试三种方式，按优先级：SDK → TelegramWebviewProxy → postMessage
+ */
+const requestTelegramFullscreen = (webApp: any): boolean => {
+  let success = false;
+
+  // 如果已经全屏，跳过
+  if (webApp.isFullscreen) {
+    return true;
+  }
+
+  // 方法 A: SDK requestFullscreen（最标准的方式）
+  if (typeof webApp.requestFullscreen === 'function') {
+    try {
+      webApp.requestFullscreen();
+      console.log('✅ requestFullscreen via SDK');
+      success = true;
+    } catch (e: any) {
+      // ALREADY_REQUESTED 不算失败
+      if (e?.message?.includes?.('ALREADY_REQUESTED') || e?.message?.includes?.('ALREADY_FULLSCREEN')) {
+        return true;
+      }
+      console.warn('⚠️ SDK requestFullscreen failed:', e?.message || e);
+    }
+  }
+
+  // 方法 B: TelegramWebviewProxy（移动端/桌面端直接通信）
+  try {
+    // @ts-ignore
+    if (window.TelegramWebviewProxy?.postEvent) {
+      // @ts-ignore
+      window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', '');
+      console.log('✅ requestFullscreen via TelegramWebviewProxy');
+      success = true;
+    }
+  } catch (e) {
+    console.warn('⚠️ TelegramWebviewProxy fullscreen failed:', e);
+  }
+
+  // 方法 C: iframe postMessage（Web 版 Telegram）
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        JSON.stringify({ eventType: 'web_app_request_fullscreen', eventData: '' }),
+        '*'
+      );
+      console.log('✅ requestFullscreen via postMessage');
+      success = true;
+    }
+  } catch (e) {
+    console.warn('⚠️ postMessage fullscreen failed:', e);
+  }
+
+  if (!success) {
+    console.log('ℹ️ Telegram fullscreen API not available (client may not support Bot API 8.0+)');
+  }
+
+  return success;
+};
+
+/**
  * 初始化 Telegram Mini App
- * 调用 ready()、expand() 并同步主题
+ *
+ * 注意：web/index.html 中已有早期初始化脚本（SDK 加载后立即执行），
+ * 这里是 React 层的补充初始化，主要负责：
+ * - 事件监听（安全区域变化、全屏状态变化等）
+ * - 全屏重试（React 就绪后再试一轮）
+ * - CSS 变量同步
  */
 export const initTelegramApp = (): void => {
   if (!isTelegram) return;
@@ -101,76 +167,46 @@ export const initTelegramApp = (): void => {
   const webApp = getTelegramWebApp();
   if (!webApp) return;
 
-
-  // 通知 Telegram 应用已就绪
+  // 通知 Telegram 应用已就绪（幂等调用，HTML 层已调用过一次）
   webApp.ready();
 
-  // 强制全屏模式（绕过 SDK 检查）
-  // 参考：https://core.telegram.org/bots/webapps#web-app-request-fullscreen
-  const forceRequestFullscreen = () => {
-    try {
-      // 方法1: 通过 TelegramWebviewProxy（移动端/桌面端）
-      // @ts-ignore
-      if (window.TelegramWebviewProxy?.postEvent) {
-        // @ts-ignore
-        window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', '');
-        console.log('✅ Sent web_app_request_fullscreen via TelegramWebviewProxy');
-        return true;
-      }
-      
-      // 方法2: 通过 postMessage（Web iframe）
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage(
-          JSON.stringify({ eventType: 'web_app_request_fullscreen', eventData: '' }), 
-          '*'
-        );
-        console.log('✅ Sent web_app_request_fullscreen via postMessage');
-        return true;
-      }
-    } catch (err) {
-      console.error('⚠️ Error sending web_app_request_fullscreen:', err);
-    }
-    return false;
-  };
-
-  // 1. 优先尝试强制全屏
-  const forced = forceRequestFullscreen();
-
-  // 2. 无论强制是否成功，都尝试调用 SDK 方法作为保底
-  // 因为有些新版客户端可能只认 SDK 方法，或者 SDK 方法内部有兼容逻辑
-  if (typeof webApp.requestFullscreen === 'function') {
-    try {
-      webApp.requestFullscreen();
-      console.log('✅ Telegram fullscreen mode requested (SDK)');
-    } catch (e) {
-      console.warn('⚠️ Telegram requestFullscreen failed:', e);
-    }
-  } else if (!forced) {
-    // 只有在强制失败且 SDK 方法也不存在时才打印“不可用”
-    console.log('ℹ️ Telegram requestFullscreen API not available (SDK < 8.0)');
-  }
-
-  // 3. 始终调用 expand() 作为最后的防线
+  // 先 expand 到最大高度
   try {
     webApp.expand();
-    console.log('✅ Telegram expanded');
   } catch (e) {
     console.warn('⚠️ Telegram expand failed:', e);
   }
 
   // 确保头部颜色与背景一致
   if (webApp.setHeaderColor) {
-    webApp.setHeaderColor('#131110'); // bgDeep
+    webApp.setHeaderColor('#131110');
   }
   if (webApp.setBackgroundColor) {
-    webApp.setBackgroundColor('#131110'); // bgDeep
+    webApp.setBackgroundColor('#131110');
   }
+
+  // 全屏请求：React 就绪后再试一轮（带指数退避重试）
+  // HTML 层已经尝试过多次了，这里是补充保险
+  const retryFullscreen = (retriesLeft: number, delay: number) => {
+    if (retriesLeft <= 0 || webApp.isFullscreen) return;
+
+    setTimeout(() => {
+      if (webApp.isFullscreen) return;
+      requestTelegramFullscreen(webApp);
+      retryFullscreen(retriesLeft - 1, delay * 2);
+    }, delay);
+  };
+
+  // 立即请求一次，然后延迟重试 3 次（500ms → 1s → 2s）
+  requestTelegramFullscreen(webApp);
+  retryFullscreen(3, 500);
 
   // 同步安全区域到 CSS 变量
   syncSafeAreaToCSSVariables();
 
-  // 监听视口变化，动态更新安全区域
+  // 监听各种事件
   if (typeof webApp.onEvent === 'function') {
+    // 视口 / 安全区域变化 → 更新 CSS 变量
     webApp.onEvent('viewportChanged', () => {
       syncSafeAreaToCSSVariables();
     });
@@ -180,10 +216,20 @@ export const initTelegramApp = (): void => {
     webApp.onEvent('contentSafeAreaChanged' as any, () => {
       syncSafeAreaToCSSVariables();
     });
-    // 监听全屏状态变化
+
+    // 全屏状态变化 → 更新安全区域
     webApp.onEvent('fullscreenChanged' as any, () => {
       console.log('📱 Telegram fullscreen changed:', webApp.isFullscreen);
       syncSafeAreaToCSSVariables();
+    });
+
+    // 全屏请求失败 → 记录原因，非重复请求时重试
+    webApp.onEvent('fullscreenFailed' as any, (evt: any) => {
+      const error = evt?.error || evt;
+      console.warn('⚠️ Telegram fullscreenFailed:', error);
+      if (error !== 'ALREADY_FULLSCREEN' && error !== 'ALREADY_REQUESTED') {
+        setTimeout(() => requestTelegramFullscreen(webApp), 1000);
+      }
     });
   }
 
@@ -192,7 +238,7 @@ export const initTelegramApp = (): void => {
     document.body.style.backgroundColor = webApp.backgroundColor;
   }
 
-  console.log('✅ Telegram Mini App initialized');
+  console.log('✅ Telegram Mini App initialized (platform:', webApp.platform, ', version:', webApp.version, ')');
 };
 
 /**

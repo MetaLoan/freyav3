@@ -15,6 +15,63 @@
     
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js?v=8.0"></script>
+    <script>
+      // 早期 Telegram 初始化（React 渲染前执行，抢占全屏时机）
+      (function() {
+        try {
+          var tg = window.Telegram && window.Telegram.WebApp;
+          if (!tg) return;
+
+          // 1. 立即通知 Telegram 应用已就绪
+          tg.ready();
+
+          // 2. 设置主题颜色（避免白色闪屏）
+          if (tg.setHeaderColor) tg.setHeaderColor('#131110');
+          if (tg.setBackgroundColor) tg.setBackgroundColor('#131110');
+
+          // 3. 先 expand 到最大高度
+          try { tg.expand(); } catch(e) {}
+
+          // 4. 立即请求全屏（SDK 方法）
+          var requestFS = function() {
+            // 方法 A: SDK requestFullscreen
+            if (typeof tg.requestFullscreen === 'function') {
+              try { tg.requestFullscreen(); return; } catch(e) {}
+            }
+            // 方法 B: TelegramWebviewProxy（移动端直接通信）
+            if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
+              try { window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', ''); return; } catch(e) {}
+            }
+            // 方法 C: iframe postMessage
+            if (window.parent && window.parent !== window) {
+              try { window.parent.postMessage(JSON.stringify({eventType:'web_app_request_fullscreen',eventData:''}), '*'); } catch(e) {}
+            }
+          };
+
+          // 立即请求 + 延迟重试（Telegram 可能需要时间处理 ready 信号）
+          requestFS();
+          setTimeout(requestFS, 300);
+          setTimeout(requestFS, 800);
+          setTimeout(requestFS, 1500);
+
+          // 5. 监听全屏失败事件（调试用）
+          if (typeof tg.onEvent === 'function') {
+            tg.onEvent('fullscreenFailed', function(e) {
+              console.warn('[TG Early] fullscreenFailed:', e && e.error || e);
+              // 如果失败原因不是 ALREADY_FULLSCREEN，再试一次
+              if (e && e.error !== 'ALREADY_FULLSCREEN') {
+                setTimeout(requestFS, 500);
+              }
+            });
+            tg.onEvent('fullscreenChanged', function() {
+              console.log('[TG Early] fullscreenChanged:', tg.isFullscreen);
+            });
+          }
+        } catch(e) {
+          console.error('[TG Early] init failed:', e);
+        }
+      })();
+    </script>
     
     <style>
       /* 全局重置 */
