@@ -257,13 +257,14 @@ export default function DiscoverScreen() {
             imageStyle={{
               width: '100%',
               height: '100%',
-              // @ts-ignore web-only
-              objectFit: 'cover',
-              // @ts-ignore web-only
-              transform: Platform.OS === 'web' ? `scale(${heroBgScale})` : [{ scale: heroBgScale }],
-              // @ts-ignore web-only
-              filter: Platform.OS === 'web' ? `blur(${heroBlur}px)` : undefined,
-            }}
+              ...(Platform.OS === 'web' ? {
+                objectFit: 'cover',
+                transform: `scale(${heroBgScale})`,
+                filter: `blur(${heroBlur}px)`,
+              } : {
+                transform: [{ scale: heroBgScale }],
+              }),
+            } as any}
           >
             <YStack flex={1} backgroundColor="transparent" position="relative">
               {/* 50%黑色遮罩层 */}
