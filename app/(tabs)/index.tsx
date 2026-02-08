@@ -280,9 +280,10 @@ export default function DiscoverScreen() {
                 style={{ 
                   backgroundImage: `linear-gradient(to bottom, 
                     transparent 0%, 
-                    transparent 50%, 
-                    rgba(122, 77, 39, 0.4) 70%, 
-                    rgba(122, 77, 39, 0.8) 90%, 
+                    transparent 40%, 
+                    rgba(122, 77, 39, 0.6) 60%, 
+                    rgba(122, 77, 39, 0.9) 80%, 
+                    rgba(122, 77, 39, 1) 95%,
                     #7A4D27 100%
                   )`,
                   pointerEvents: 'none',
