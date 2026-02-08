@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -33,9 +33,6 @@ if (Platform.OS === 'web') {
     originalWarn(...args);
   };
 }
-
-/** Web 端字体最大等待时间（慢网络时避免 6s 超时卡住） */
-const WEB_FONT_LOAD_TIMEOUT_MS = 4000;
 
 /**
  * 根布局
@@ -96,10 +93,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   return (
     <SafeAreaProvider>
