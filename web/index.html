@@ -17,6 +17,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js?v=8.0"></script>
     <script>
       // 早期 Telegram 初始化（React 渲染前执行，抢占全屏时机）
+      // 参考: laura-ai-clone 的 forceRequestFullscreen 实现
       (function() {
         try {
           var tg = window.Telegram && window.Telegram.WebApp;
@@ -32,39 +33,62 @@
           // 3. 先 expand 到最大高度
           try { tg.expand(); } catch(e) {}
 
-          // 4. 立即请求全屏（SDK 方法）
-          var requestFS = function() {
-            // 方法 A: SDK requestFullscreen
+          // 4. 全屏请求函数 — 同时向所有通道发送（不早退）
+          var forceRequestFullscreen = function() {
+            try {
+              // 方法 A: TelegramWebviewProxy（移动端/桌面端）
+              if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
+                window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', '');
+              }
+              // 方法 B: postMessage（Web iframe）
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage(JSON.stringify({eventType:'web_app_request_fullscreen'}), '*');
+              }
+              // 方法 C: external.notify（Windows Phone）
+              if (window.external && window.external.notify) {
+                window.external.notify(JSON.stringify({eventType:'web_app_request_fullscreen'}));
+              }
+            } catch(e) {}
+            // 方法 D: SDK requestFullscreen
             if (typeof tg.requestFullscreen === 'function') {
-              try { tg.requestFullscreen(); return; } catch(e) {}
-            }
-            // 方法 B: TelegramWebviewProxy（移动端直接通信）
-            if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
-              try { window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', ''); return; } catch(e) {}
-            }
-            // 方法 C: iframe postMessage
-            if (window.parent && window.parent !== window) {
-              try { window.parent.postMessage(JSON.stringify({eventType:'web_app_request_fullscreen',eventData:''}), '*'); } catch(e) {}
+              try { tg.requestFullscreen(); } catch(e) {}
             }
           };
 
-          // 立即请求 + 延迟重试（Telegram 可能需要时间处理 ready 信号）
-          requestFS();
-          setTimeout(requestFS, 300);
-          setTimeout(requestFS, 800);
-          setTimeout(requestFS, 1500);
+          // 5. 禁用垂直滑动（防止下拉关闭干扰全屏）
+          var forceDisableVerticalSwipes = function() {
+            try {
+              if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
+                window.TelegramWebviewProxy.postEvent('web_app_setup_swipe_behavior', JSON.stringify({allow_vertical_swipe:false}));
+              }
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage(JSON.stringify({eventType:'web_app_setup_swipe_behavior',eventData:{allow_vertical_swipe:false}}), '*');
+              }
+            } catch(e) {}
+            if (typeof tg.disableVerticalSwipes === 'function') {
+              try { tg.disableVerticalSwipes(); } catch(e) {}
+            }
+          };
 
-          // 5. 监听全屏失败事件（调试用）
+          // 立即请求
+          forceRequestFullscreen();
+          forceDisableVerticalSwipes();
+
+          // 延迟重试
+          setTimeout(forceRequestFullscreen, 300);
+          setTimeout(forceRequestFullscreen, 800);
+          setTimeout(forceRequestFullscreen, 1500);
+
+          // 6. 监听事件（调试 + 自动重试）
           if (typeof tg.onEvent === 'function') {
             tg.onEvent('fullscreenFailed', function(e) {
-              console.warn('[TG Early] fullscreenFailed:', e && e.error || e);
-              // 如果失败原因不是 ALREADY_FULLSCREEN，再试一次
-              if (e && e.error !== 'ALREADY_FULLSCREEN') {
-                setTimeout(requestFS, 500);
+              console.warn('[TG] fullscreenFailed:', e && e.error || e);
+              if (!e || (e.error !== 'ALREADY_FULLSCREEN' && e.error !== 'ALREADY_REQUESTED')) {
+                setTimeout(forceRequestFullscreen, 500);
               }
             });
             tg.onEvent('fullscreenChanged', function() {
-              console.log('[TG Early] fullscreenChanged:', tg.isFullscreen);
+              console.log('[TG] fullscreenChanged:', tg.isFullscreen);
             });
           }
         } catch(e) {
