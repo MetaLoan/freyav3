@@ -50,12 +50,21 @@ jobs:
           ls -la dist/ || echo "dist/ directory not found"
           echo "Checking for index.html:"
           ls -la dist/*.html || echo "No HTML files found"
+          echo "--- index.html content (first 100 lines) ---"
+          head -100 dist/index.html || echo "index.html not found"
 
       - name: Fix paths for GitHub Pages
         run: node scripts/fix-github-pages-paths.js
 
       - name: Create 404.html for SPA routing
         run: node scripts/create-404.js
+      
+      - name: Verify fixed paths
+        run: |
+          echo "--- Fixed index.html content (first 100 lines) ---"
+          head -100 dist/index.html || echo "index.html not found"
+          echo "--- 404.html created ---"
+          ls -la dist/404.html || echo "404.html not found"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
