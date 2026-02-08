@@ -62,12 +62,12 @@ export const headingFont = createFont({
     10: -1.2,
   },
   face: {
-    400: { normal: 'PlayfairDisplay_400Regular' },
-    500: { normal: 'PlayfairDisplay_500Medium' },
-    600: { normal: 'PlayfairDisplay_600SemiBold' },
-    700: { normal: 'PlayfairDisplay_700Bold' },
-    800: { normal: 'PlayfairDisplay_800ExtraBold' },
-    900: { normal: 'PlayfairDisplay_900Black' },
+    400: { normal: 'Playfair Display' },
+    500: { normal: 'Playfair Display' },
+    600: { normal: 'Playfair Display' },
+    700: { normal: 'Playfair Display' },
+    800: { normal: 'Playfair Display' },
+    900: { normal: 'Playfair Display' },
   },
 });
 
@@ -122,15 +122,15 @@ export const bodyFont = createFont({
     9: -0.8,
   },
   face: {
-    100: { normal: 'Inter_100Thin' },
-    200: { normal: 'Inter_200ExtraLight' },
-    300: { normal: 'Inter_300Light' },
-    400: { normal: 'Inter_400Regular' },
-    500: { normal: 'Inter_500Medium' },
-    600: { normal: 'Inter_600SemiBold' },
-    700: { normal: 'Inter_700Bold' },
-    800: { normal: 'Inter_800ExtraBold' },
-    900: { normal: 'Inter_900Black' },
+    100: { normal: 'Inter' },
+    200: { normal: 'Inter' },
+    300: { normal: 'Inter' },
+    400: { normal: 'Inter' },
+    500: { normal: 'Inter' },
+    600: { normal: 'Inter' },
+    700: { normal: 'Inter' },
+    800: { normal: 'Inter' },
+    900: { normal: 'Inter' },
   },
 });
 

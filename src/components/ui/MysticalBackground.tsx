@@ -92,10 +92,10 @@ function TotemPattern({
           {/* 1. 底层：图腾图片（全屏显示，使用滤色混合模式） */}
           <Image
             source={imageSource}
+            resizeMode="contain"
             style={{
               width: width,
               height: width,
-              resizeMode: 'contain',
               opacity: opacity,
               // @ts-ignore - React Native Web 支持 blendMode
               mixBlendMode: 'screen',
@@ -150,6 +150,7 @@ function TotemPattern({
     return (
       <Image
         source={imageSource}
+        resizeMode="contain"
         style={{
           position: 'absolute',
           top: 0,
@@ -157,7 +158,6 @@ function TotemPattern({
           width: width,
           height: width, // 使用宽度作为高度
           opacity: opacity,
-          resizeMode: 'contain',
           // @ts-ignore - React Native Web 支持 blendMode
           mixBlendMode: 'screen',
         }}
@@ -334,7 +334,7 @@ export const MysticalBackground: React.FC<MysticalBackgroundProps> = ({
   return (
     <YStack flex={1} backgroundColor={palette.bgDeep}>
       {/* 背景层 */}
-      <YStack position="absolute" top={0} left={0} right={0} bottom={0} pointerEvents="none">
+      <YStack position="absolute" top={0} left={0} right={0} bottom={0} style={{ pointerEvents: 'none' }}>
         {/* 顶部光照区域（圆形，用作光照遮罩） */}
         <Svg width={width} height={600} viewBox={`0 0 ${width} 600`} style={{ position: 'absolute', top: 0, left: 0 }}>
           <Defs>

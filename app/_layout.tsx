@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -24,6 +25,18 @@ import { AppTamaguiProvider } from '../src/providers/TamaguiProvider';
 // 在字体加载完成前保持 Splash Screen 可见
 SplashScreen.preventAutoHideAsync();
 
+// 忽略部分 Web 端警告（来自第三方库）
+if (Platform.OS === 'web') {
+  const originalWarn = console.warn;
+  console.warn = (...args) => {
+    if (args[0]?.includes?.('props.pointerEvents is deprecated')) return;
+    originalWarn(...args);
+  };
+}
+
+/** Web 端字体最大等待时间（慢网络时避免 6s 超时卡住） */
+const WEB_FONT_LOAD_TIMEOUT_MS = 4000;
+
 /**
  * 根布局
  * 
@@ -37,8 +50,17 @@ export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadFonts() {
       try {
+        // Web 端：使用 CSS 加载字体（index.html 中已引入 Google Fonts）
+        // 不再调用 Font.loadAsync，避免慢网络下超时卡死
+        if (Platform.OS === 'web') {
+          setFontsLoaded(true);
+          return;
+        }
+
         await Font.loadAsync({
           // Inter - 正文字体（精简到常用字重）
           Inter_300Light,
@@ -54,19 +76,24 @@ export default function RootLayout() {
           PlayfairDisplay_800ExtraBold,
           PlayfairDisplay_900Black,
         });
+
+        if (!cancelled) setFontsLoaded(true);
       } catch (e) {
         console.warn('Font loading failed:', e);
-      } finally {
-        setFontsLoaded(true);
+        if (!cancelled) setFontsLoaded(true);
       }
     }
 
     loadFonts();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const onLayoutRootView = useCallback(async () => {
+  // 移除 onLayout 依赖，直接在状态变化时隐藏启动屏
+  useEffect(() => {
     if (fontsLoaded) {
-      await SplashScreen.hideAsync();
+      SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
 
@@ -75,7 +102,7 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider onLayout={onLayoutRootView}>
+    <SafeAreaProvider>
       <AppTamaguiProvider>
         {/* 暗色主题默认使用浅色状态栏文字 */}
         <StatusBar style="light" />

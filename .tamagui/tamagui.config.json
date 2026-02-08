@@ -28475,22 +28475,22 @@
             "normal": "PlayfairDisplay"
           },
           "400": {
-            "normal": "PlayfairDisplay_400Regular"
+            "normal": "Playfair Display"
           },
           "500": {
-            "normal": "PlayfairDisplay_500Medium"
+            "normal": "Playfair Display"
           },
           "600": {
-            "normal": "PlayfairDisplay_600SemiBold"
+            "normal": "Playfair Display"
           },
           "700": {
-            "normal": "PlayfairDisplay_700Bold"
+            "normal": "Playfair Display"
           },
           "800": {
-            "normal": "PlayfairDisplay_800ExtraBold"
+            "normal": "Playfair Display"
           },
           "900": {
-            "normal": "PlayfairDisplay_900Black"
+            "normal": "Playfair Display"
           }
         }
       },
@@ -28550,31 +28550,31 @@
         },
         "face": {
           "100": {
-            "normal": "Inter_100Thin"
+            "normal": "Inter"
           },
           "200": {
-            "normal": "Inter_200ExtraLight"
+            "normal": "Inter"
           },
           "300": {
-            "normal": "Inter_300Light"
+            "normal": "Inter"
           },
           "400": {
-            "normal": "Inter_400Regular"
+            "normal": "Inter"
           },
           "500": {
-            "normal": "Inter_500Medium"
+            "normal": "Inter"
           },
           "600": {
-            "normal": "Inter_600SemiBold"
+            "normal": "Inter"
           },
           "700": {
-            "normal": "Inter_700Bold"
+            "normal": "Inter"
           },
           "800": {
-            "normal": "Inter_800ExtraBold"
+            "normal": "Inter"
           },
           "900": {
-            "normal": "Inter_900Black"
+            "normal": "Inter"
           }
         }
       },

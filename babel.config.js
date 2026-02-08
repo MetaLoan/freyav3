@@ -8,7 +8,7 @@ module.exports = function (api) {
         {
           config: './tamagui.config.ts',
           components: ['tamagui'],
-          logTimings: true,
+          // 开发环境禁用提取，加快热重载速度
           disableExtraction: process.env.NODE_ENV === 'development',
         },
       ],

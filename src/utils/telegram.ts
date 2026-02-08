@@ -104,21 +104,15 @@ export const initTelegramApp = (): void => {
   // 通知 Telegram 应用已就绪
   webApp.ready();
 
-  // 展开到全屏（必须先调用 ready()）
-  try {
-    webApp.expand();
-    console.log('✅ Telegram expanded');
-  } catch (e) {
-    console.warn('⚠️ Telegram expand failed:', e);
-  }
-
   // 强制全屏模式（绕过 SDK 检查）
   // 参考：https://core.telegram.org/bots/webapps#web-app-request-fullscreen
   const forceRequestFullscreen = () => {
     try {
       // 方法1: 通过 TelegramWebviewProxy（移动端/桌面端）
-      if ((window as any).TelegramWebviewProxy?.postEvent) {
-        (window as any).TelegramWebviewProxy.postEvent('web_app_request_fullscreen', '');
+      // @ts-ignore
+      if (window.TelegramWebviewProxy?.postEvent) {
+        // @ts-ignore
+        window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', '');
         console.log('✅ Sent web_app_request_fullscreen via TelegramWebviewProxy');
         return true;
       }
@@ -138,25 +132,29 @@ export const initTelegramApp = (): void => {
     return false;
   };
 
-  // 设置全屏模式相关配置
-  // 禁用关闭确认（全屏模式下通常不需要）
-  if (typeof webApp.enableClosingConfirmation === 'function') {
-    webApp.enableClosingConfirmation();
+  // 1. 优先尝试强制全屏
+  const forced = forceRequestFullscreen();
+
+  // 2. 无论强制是否成功，都尝试调用 SDK 方法作为保底
+  // 因为有些新版客户端可能只认 SDK 方法，或者 SDK 方法内部有兼容逻辑
+  if (typeof webApp.requestFullscreen === 'function') {
+    try {
+      webApp.requestFullscreen();
+      console.log('✅ Telegram fullscreen mode requested (SDK)');
+    } catch (e) {
+      console.warn('⚠️ Telegram requestFullscreen failed:', e);
+    }
+  } else if (!forced) {
+    // 只有在强制失败且 SDK 方法也不存在时才打印“不可用”
+    console.log('ℹ️ Telegram requestFullscreen API not available (SDK < 8.0)');
   }
 
-  // 优先尝试强制全屏
-  if (!forceRequestFullscreen()) {
-    // 如果强制方法失败，回退到 SDK 方法
-    if (typeof webApp.requestFullscreen === 'function') {
-      try {
-        webApp.requestFullscreen();
-        console.log('✅ Telegram fullscreen mode requested (SDK)');
-      } catch (e) {
-        console.warn('⚠️ Telegram requestFullscreen failed:', e);
-      }
-    } else {
-      console.log('ℹ️ Telegram requestFullscreen API not available (SDK < 8.0)');
-    }
+  // 3. 始终调用 expand() 作为最后的防线
+  try {
+    webApp.expand();
+    console.log('✅ Telegram expanded');
+  } catch (e) {
+    console.warn('⚠️ Telegram expand failed:', e);
   }
 
   // 确保头部颜色与背景一致
