@@ -330,7 +330,10 @@ export default function DiscoverScreen() {
                 <YStack 
                   alignItems="center"
                   paddingHorizontal={layout.card.paddingLg} 
-                  paddingTop={safeArea.paddingTop + spacing.md} 
+                  paddingTop={Platform.OS === 'web' 
+                    ? 117 + spacing.md // 时间选择器高度 + 间距，确保内容从时间选择器下方开始
+                    : safeArea.paddingTop + spacing.md
+                  }
                   paddingBottom={layout.card.paddingLg + spacing.xxl}
                   space={spacing.lg}
                   zIndex={2}
