@@ -239,6 +239,15 @@ export default function DiscoverScreen() {
   return (
     <MysticalBackground variant="full" showTotem showGlow={false} totemImageSource={totemPattern} totemBottomImageSource={totemPatternBottom}>
 
+      {/* ===== 悬浮时间选择器 — fixed 定位在页面顶部 ===== */}
+      <TimeSelector
+        selectedTime={selectedTime}
+        timeUnit={timeUnit}
+        onTimeChange={setSelectedTime}
+        onTimeUnitChange={setTimeUnit}
+        safeAreaTop={safeArea.paddingTop}
+      />
+
       {/* 所有内容都在 ScrollView 内，Hero 通过 translateY 实现半速视差 */}
       <RNScrollView
         style={{ flex: 1 }}
@@ -413,14 +422,6 @@ export default function DiscoverScreen() {
             )`,
           }}
         >
-
-          {/* ===== 时间选择器 ===== */}
-          <TimeSelector
-            selectedTime={selectedTime}
-            timeUnit={timeUnit}
-            onTimeChange={setSelectedTime}
-            onTimeUnitChange={setTimeUnit}
-          />
 
           {/* ===== 五维运势 ===== */}
           <YStack marginTop={spacing.lg}>

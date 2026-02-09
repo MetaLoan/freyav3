@@ -24,6 +24,8 @@ export interface TimeSelectorProps {
   onTimeUnitChange: (unit: TimeUnit) => void;
   showUnitSelect?: boolean;
   showTitle?: boolean;
+  /** 安全区域顶部高度（px），悬浮模式下作为顶部内边距 */
+  safeAreaTop?: number;
 }
 
 // ============================================================
@@ -38,6 +40,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
   onTimeUnitChange,
   showUnitSelect = true,
   showTitle = true,
+  safeAreaTop = 0,
 }) => {
   const [timeOffset, setTimeOffset] = useState(0);
 
@@ -339,7 +342,25 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
   const BTN_MIN_W = s(48);
 
   return (
-    <YStack paddingTop={spacing.sm} paddingBottom={spacing.sm}>
+    <YStack
+      paddingBottom={spacing.sm}
+      zIndex={50}
+      // @ts-ignore web-only: fixed positioning at top
+      style={Platform.OS === 'web' ? {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        paddingTop: safeAreaTop + spacing.sm,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        backgroundColor: 'rgba(19, 17, 16, 0.75)',
+        borderBottom: `1px solid ${palette.white5}`,
+        zIndex: 50,
+      } : {
+        paddingTop: safeAreaTop + spacing.sm,
+      }}
+    >
       {/* 顶部：日期标题 + 时间单位切换 */}
       <XStack
         paddingHorizontal={layout.page.paddingH}
