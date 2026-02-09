@@ -517,19 +517,21 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                   border: 'none',
                   cursor: 'pointer',
                   opacity: opacityVal,
-                  transition: 'opacity 300ms, transform 300ms',
+                  transition: 'opacity 300ms',
                   flexShrink: 0,
-                  // 3D 透视轮盘：远端缩小 + 向后推 + 绕 Y 轴旋转
-                  transform: `perspective(800px) translateZ(${zVal}px) rotateY(${rotateVal}deg) scale(${scaleVal})`,
                 }}
               >
+                {/* 3D 透视轮盘应用在内部 span，不影响按钮布局位置 */}
                 <span style={{
+                  display: 'inline-block',
                   fontFamily: "'Inter', -apple-system, sans-serif",
                   fontSize: fs(13),
                   fontWeight: isVisualActive ? 700 : 500,
                   whiteSpace: 'nowrap' as const,
-                  transition: 'color 300ms',
+                  transition: 'color 300ms, transform 300ms',
                   color: isVisualActive ? palette.bgDeep : palette.textSecondary,
+                  // 3D 透视轮盘：远端缩小 + 向后推 + 绕 Y 轴旋转
+                  transform: `perspective(800px) translateZ(${zVal}px) rotateY(${rotateVal}deg) scale(${scaleVal})`,
                 }}>
                   {item.label}
                 </span>
