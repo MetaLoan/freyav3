@@ -416,9 +416,13 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
             display: 'flex',
             alignItems: 'center',
             overflowX: 'auto',
+            overflowY: 'hidden', // 防止垂直滚动条
             paddingBottom: s(4),
             paddingLeft: s(8),
             paddingRight: s(8),
+            // 隐藏滚动条（多浏览器兼容）
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none', // IE/Edge
             maskImage: `linear-gradient(to right, transparent 0%, black ${s(24)}px, black calc(100% - ${s(24)}px), transparent 100%)`,
             WebkitMaskImage: `linear-gradient(to right, transparent 0%, black ${s(24)}px, black calc(100% - ${s(24)}px), transparent 100%)`,
           }}

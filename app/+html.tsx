@@ -35,10 +35,18 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <style dangerouslySetInnerHTML={{
           __html: `
             .no-scrollbar {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
+              -ms-overflow-style: none; /* IE/Edge */
+              scrollbar-width: none; /* Firefox */
             }
             .no-scrollbar::-webkit-scrollbar {
+              display: none; /* Chrome/Safari/WebKit */
+              width: 0;
+              height: 0;
+            }
+            .no-scrollbar::-webkit-scrollbar-track {
+              display: none;
+            }
+            .no-scrollbar::-webkit-scrollbar-thumb {
               display: none;
             }
           `
