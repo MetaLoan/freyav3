@@ -259,9 +259,7 @@ export default function DiscoverScreen() {
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: Platform.OS === 'web' 
-            ? 117 // 时间选择器实际测量高度（包含安全区域）
-            : 0,
+          paddingTop: 0, // Hero 卡片从顶部开始，时间选择器沉浸式浮在上方
           paddingBottom: layout.bottomNav.height + spacing.xxl
         }}
         onScroll={handleScroll}
@@ -331,7 +329,7 @@ export default function DiscoverScreen() {
                   alignItems="center"
                   paddingHorizontal={layout.card.paddingLg} 
                   paddingTop={Platform.OS === 'web' 
-                    ? 117 + spacing.md // 时间选择器高度 + 间距，确保内容从时间选择器下方开始
+                    ? 117 + spacing.md // 时间选择器高度(117px) + 间距，让内容从时间选择器下方开始
                     : safeArea.paddingTop + spacing.md
                   }
                   paddingBottom={layout.card.paddingLg + spacing.xxl}
