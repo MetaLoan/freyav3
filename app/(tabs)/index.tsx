@@ -21,14 +21,12 @@ import { useSafeAreaStyle } from '../../src/hooks/useSafeArea';
 import { palette } from '../../src/config/theme';
 import { layout } from '../../src/config/layout';
 import { s, vs, fs, wp, spacing, fontSize, radius, iconSize } from '../../src/utils/responsive';
-import { AppCard, Button, Avatar, Badge, MysticalBackground, TimeSelector } from '../../src/components/ui';
+import { AppCard, Button, Badge, MysticalBackground, TimeSelector } from '../../src/components/ui';
 import type { TimeUnit } from '../../src/components/ui';
 // @ts-ignore
 import totemPattern from '../../assets/totem-pattern.png';
 // @ts-ignore
 import totemPatternBottom from '../../assets/totem-pattern-bottom.png';
-// @ts-ignore
-import avatarPortrait from '../../assets/avatar-portrait.png';
 // @ts-ignore
 import cardSolarSystemBg from '../../assets/bg.jpg';
 // @ts-ignore
@@ -347,10 +345,7 @@ export default function DiscoverScreen() {
                     willChange: 'transform, filter, opacity',
                   } : undefined}
                 >
-                  {/* 1. 头像 */}
-                  <Avatar size="xl" source={avatarPortrait} showBorder={false} />
-
-                  {/* 2. 标题 */}
+                  {/* 标题 */}
                   <Text fontFamily="$heading" fontSize={fontSize.base} fontWeight="400" color={palette.gold200} textAlign="center" numberOfLines={1}>
                     Overall Energy on {selectedTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </Text>
