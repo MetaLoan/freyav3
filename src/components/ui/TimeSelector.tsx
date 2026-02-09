@@ -354,7 +354,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         paddingTop: safeAreaTop + spacing.sm,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        backgroundColor: 'rgba(19, 17, 16, 0.75)',
+        backgroundColor: 'transparent', // 完全透明背景
         borderBottom: `1px solid ${palette.white5}`,
         zIndex: 50,
       } : {

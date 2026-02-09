@@ -260,7 +260,7 @@ export default function DiscoverScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: Platform.OS === 'web' 
-            ? safeArea.paddingTop + spacing.sm + fontSize.base + spacing.md + s(36) + spacing.sm * 2 // 时间选择器总高度：安全区 + 顶部padding + 标题行 + 滚动条 + 底部padding
+            ? 117 // 时间选择器实际测量高度（包含安全区域）
             : 0,
           paddingBottom: layout.bottomNav.height + spacing.xxl
         }}
