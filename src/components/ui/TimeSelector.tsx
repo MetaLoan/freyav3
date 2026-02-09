@@ -459,8 +459,13 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
             // 隐藏滚动条（多浏览器兼容）
             scrollbarWidth: 'none', // Firefox
             msOverflowStyle: 'none', // IE/Edge
-            maskImage: `linear-gradient(to right, transparent 0%, black ${s(24)}px, black calc(100% - ${s(24)}px), transparent 100%)`,
-            WebkitMaskImage: `linear-gradient(to right, transparent 0%, black ${s(24)}px, black calc(100% - ${s(24)}px), transparent 100%)`,
+            // 增强两侧渐隐效果：更宽的渐变区域（从 24px 增加到 60px）
+            maskImage: `linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) ${s(40)}px, black ${s(60)}px, black calc(100% - ${s(60)}px), rgba(0,0,0,0.3) calc(100% - ${s(40)}px), transparent 100%)`,
+            WebkitMaskImage: `linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) ${s(40)}px, black ${s(60)}px, black calc(100% - ${s(60)}px), rgba(0,0,0,0.3) calc(100% - ${s(40)}px), transparent 100%)`,
+            // 3D 透视容器：创造轮盘效果
+            perspective: '1000px',
+            perspectiveOrigin: 'center center',
+            transformStyle: 'preserve-3d',
           }}
         >
           {/* 动画胶囊背景 */}
@@ -482,6 +487,17 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
           {/* 时间按钮 */}
           {timeSelectorData.map((item, idx) => {
             const isVisualActive = idx === visualActiveIndex;
+            // 计算距离视觉选中中心的偏移（使用 visualActiveIndex 作为中心）
+            const centerIndex = visualActiveIndex >= 0 ? visualActiveIndex : 20;
+            const distanceFromCenter = Math.abs(idx - centerIndex);
+            const maxDistance = 10; // 最大影响距离（超过此距离不再变化）
+            
+            // 3D 透视效果：距离中心越远，scale 越小，translateZ 越负，rotateY 越大
+            const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
+            const scale = 1 - normalizedDistance * 0.25; // 0.75 → 1.0
+            const translateZ = -normalizedDistance * 40; // -40px → 0px
+            const rotateY = (idx < centerIndex ? -1 : 1) * normalizedDistance * 25; // -25deg → 0deg → 25deg
+            
             return (
               <button
                 key={`${timeUnit}-${item.date.getTime()}`}
@@ -501,9 +517,12 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  opacity: isVisualActive ? 1 : 0.5,
-                  transition: 'opacity 300ms',
+                  opacity: isVisualActive ? 1 : 0.5 - normalizedDistance * 0.3, // 距离中心越远越透明
+                  transition: 'opacity 300ms, transform 300ms',
                   flexShrink: 0,
+                  // 3D 透视变形：创造轮盘效果
+                  transform: `perspective(1000px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                  transformStyle: 'preserve-3d',
                 }}
               >
                 <span style={{
