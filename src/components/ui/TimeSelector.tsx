@@ -459,13 +459,9 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
             // 隐藏滚动条（多浏览器兼容）
             scrollbarWidth: 'none', // Firefox
             msOverflowStyle: 'none', // IE/Edge
-            // 增强两侧渐隐效果：更宽的渐变区域（从 24px 增加到 60px）
-            maskImage: `linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) ${s(40)}px, black ${s(60)}px, black calc(100% - ${s(60)}px), rgba(0,0,0,0.3) calc(100% - ${s(40)}px), transparent 100%)`,
-            WebkitMaskImage: `linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) ${s(40)}px, black ${s(60)}px, black calc(100% - ${s(60)}px), rgba(0,0,0,0.3) calc(100% - ${s(40)}px), transparent 100%)`,
-            // 3D 透视容器：创造轮盘效果
-            perspective: '1000px',
-            perspectiveOrigin: 'center center',
-            transformStyle: 'preserve-3d',
+            // 加强两侧渐隐：更宽的渐变区域 + 中间过渡层
+            maskImage: `linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) ${s(40)}px, black ${s(70)}px, black calc(100% - ${s(70)}px), rgba(0,0,0,0.3) calc(100% - ${s(40)}px), transparent 100%)`,
+            WebkitMaskImage: `linear-gradient(to right, transparent 0%, rgba(0,0,0,0.3) ${s(40)}px, black ${s(70)}px, black calc(100% - ${s(70)}px), rgba(0,0,0,0.3) calc(100% - ${s(40)}px), transparent 100%)`,
           }}
         >
           {/* 动画胶囊背景 */}
@@ -484,20 +480,23 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
             }}
           />
 
-          {/* 时间按钮 */}
+          {/* 时间按钮 — 3D 透视轮盘效果 */}
           {timeSelectorData.map((item, idx) => {
             const isVisualActive = idx === visualActiveIndex;
-            // 计算距离视觉选中中心的偏移（使用 visualActiveIndex 作为中心）
+
+            // 计算距离选中中心的偏移
             const centerIndex = visualActiveIndex >= 0 ? visualActiveIndex : 20;
-            const distanceFromCenter = Math.abs(idx - centerIndex);
-            const maxDistance = 10; // 最大影响距离（超过此距离不再变化）
-            
-            // 3D 透视效果：距离中心越远，scale 越小，translateZ 越负，rotateY 越大
-            const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
-            const scale = 1 - normalizedDistance * 0.25; // 0.75 → 1.0
-            const translateZ = -normalizedDistance * 40; // -40px → 0px
-            const rotateY = (idx < centerIndex ? -1 : 1) * normalizedDistance * 25; // -25deg → 0deg → 25deg
-            
+            const offset = idx - centerIndex;
+            const distance = Math.abs(offset);
+            const maxDist = 12;
+            const t = Math.min(distance / maxDist, 1); // 0~1 归一化
+
+            // 轮盘效果参数
+            const scaleVal  = 1 - t * 0.2;              // 1.0 → 0.8
+            const zVal      = -t * 30;                    // 0 → -30px
+            const rotateVal = (offset > 0 ? 1 : -1) * t * 20; // ±20deg
+            const opacityVal = isVisualActive ? 1 : 0.6 - t * 0.35; // 0.6 → 0.25
+
             return (
               <button
                 key={`${timeUnit}-${item.date.getTime()}`}
@@ -505,7 +504,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                 onClick={() => handleTimeSelect(idx, item.date)}
                 style={{
                   position: 'relative',
-                  zIndex: 10,
+                  zIndex: 10 - distance,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -517,12 +516,11 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  opacity: isVisualActive ? 1 : 0.5 - normalizedDistance * 0.3, // 距离中心越远越透明
+                  opacity: opacityVal,
                   transition: 'opacity 300ms, transform 300ms',
                   flexShrink: 0,
-                  // 3D 透视变形：创造轮盘效果
-                  transform: `perspective(1000px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-                  transformStyle: 'preserve-3d',
+                  // 3D 透视轮盘：远端缩小 + 向后推 + 绕 Y 轴旋转
+                  transform: `perspective(800px) translateZ(${zVal}px) rotateY(${rotateVal}deg) scale(${scaleVal})`,
                 }}
               >
                 <span style={{
