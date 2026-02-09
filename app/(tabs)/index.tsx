@@ -214,27 +214,33 @@ export default function DiscoverScreen() {
   // 动画过渡区域 = Hero 高度 - 重叠量
   const animRange = heroHeight - HERO_OVERLAP;
 
-  // 滚动进度：0 = 顶部（Hero 完全可见），1 = Hero 被内容完全覆盖
-  const [scrollProgress, setScrollProgress] = useState(0);
-  // 记录实际滚动偏移量（用于 Hero 视差位移）
-  const [scrollOffsetY, setScrollOffsetY] = useState(0);
+  // ============================================================
+  // 滚动驱动动画 — 使用 CSS 自定义属性，跳过 React 渲染周期
+  //
+  // 旧方案（卡顿原因）：
+  //   onScroll → setState → React 重渲染 → 计算样式 → DOM 更新
+  //   每帧触发完整 React 渲染，60fps 下每秒 60 次重渲染
+  //
+  // 新方案（流畅 60fps）：
+  //   onScroll → 设置 CSS 变量 --sp / --sy → 浏览器自动 calc() → GPU 合成
+  //   完全跳过 React，所有动画值由浏览器原生插值
+  //
+  // CSS 变量说明：
+  //   --sp: scroll progress (0~1)，滚动进度
+  //   --sy: scroll offset Y (px)，滚动偏移量
+  // ============================================================
 
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (Platform.OS !== 'web') return;
     const offsetY = e.nativeEvent.contentOffset.y;
     const clamped = Math.max(offsetY, 0);
     const progress = Math.min(clamped / animRange, 1);
-    setScrollProgress(progress);
-    setScrollOffsetY(clamped);
-  }, [animRange]);
 
-  // Hero 内容的动态样式：随滚动缩小 + 模糊
-  const heroScale = 1 - scrollProgress * 0.15; // 1.0 → 0.85
-  const heroBlur = scrollProgress * 12; // 0px → 12px
-  const heroOpacity = 1 - scrollProgress * 0.3; // 1.0 → 0.7
-  // Hero 背景图：默认 1.1 倍放大，上滑时逐渐缩回 1.0
-  const heroBgScale = 1.1 - scrollProgress * 0.1; // 1.1 → 1.0
-  // Hero 视差：ScrollView 内容滚动 100px 时，Hero 只移动 50px（反向补偿一半）
-  const heroTranslateY = scrollOffsetY * 0.5;
+    // 直接设置 CSS 自定义属性，浏览器通过 calc() 驱动所有动画
+    // 无 setState → 无 React 重渲染 → 无 VDOM diff → 流畅 60fps
+    document.documentElement.style.setProperty('--sp', progress.toFixed(4));
+    document.documentElement.style.setProperty('--sy', clamped.toFixed(1));
+  }, [animRange]);
 
   return (
     <MysticalBackground variant="full" showTotem showGlow={false} totemImageSource={totemPattern} totemBottomImageSource={totemPatternBottom}>
@@ -256,16 +262,15 @@ export default function DiscoverScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {/* ===== Hero 卡片 — 在 ScrollView 内，用 translateY 实现半速视差 ===== */}
+        {/* ===== Hero 卡片 — 在 ScrollView 内，用 CSS 变量驱动半速视差 ===== */}
         <YStack
           onLayout={handleHeroLayout}
           // @ts-ignore web-only
           style={Platform.OS === 'web' ? {
-            transform: `translateY(${heroTranslateY}px)`,
+            // translateY = scrollOffsetY * 0.5
+            transform: 'translateY(calc(var(--sy, 0) * 0.5 * 1px))',
             willChange: 'transform',
-          } : {
-            transform: [{ translateY: heroTranslateY }],
-          }}
+          } : undefined}
         >
           <YStack overflow="hidden">
             <ImageBackground
@@ -274,26 +279,20 @@ export default function DiscoverScreen() {
               resizeMode="cover"
               imageStyle={{
                 ...(Platform.OS === 'web' ? {
-                  // 默认 110% 点对点渲染，滚动时切换到 GPU scale 动画
-                  ...(scrollProgress === 0 ? {
-                    width: '110%',
-                    height: '110%',
-                    marginLeft: '-5%',
-                    marginTop: '-5%',
-                    objectFit: 'cover',
-                  } : {
-                    width: '110%',
-                    height: '110%',
-                    marginLeft: '-5%',
-                    marginTop: '-5%',
-                    objectFit: 'cover',
-                    transform: `scale(${heroBgScale / 1.1})`,
-                    filter: `blur(${heroBlur}px)`,
-                  }),
+                  width: '110%',
+                  height: '110%',
+                  marginLeft: '-5%',
+                  marginTop: '-5%',
+                  objectFit: 'cover',
+                  // bgScale = (1.1 - sp * 0.1) / 1.1 = 1 - sp * 0.0909
+                  // blur = sp * 12px
+                  // 初始值 sp=0 → scale(1) blur(0) 即恒等变换
+                  transform: 'scale(calc(1 - var(--sp, 0) * 0.0909))',
+                  filter: 'blur(calc(var(--sp, 0) * 12 * 1px))',
+                  willChange: 'transform, filter',
                 } : {
                   width: '100%',
                   height: '100%',
-                  transform: [{ scale: heroBgScale }],
                 }),
               } as any}
             >
@@ -332,15 +331,15 @@ export default function DiscoverScreen() {
                   zIndex={2}
                   // @ts-ignore web-only
                   style={Platform.OS === 'web' ? {
-                    transform: `scale(${heroScale})`,
-                    filter: `blur(${heroBlur}px)`,
-                    opacity: heroOpacity,
+                    // scale = 1 - sp * 0.15  (1.0 → 0.85)
+                    // blur  = sp * 12px      (0px → 12px)
+                    // opacity = 1 - sp * 0.3 (1.0 → 0.7)
+                    transform: 'scale(calc(1 - var(--sp, 0) * 0.15))',
+                    filter: 'blur(calc(var(--sp, 0) * 12 * 1px))',
+                    opacity: 'calc(1 - var(--sp, 0) * 0.3)',
                     transition: 'none',
                     willChange: 'transform, filter, opacity',
-                  } : {
-                    transform: [{ scale: heroScale }],
-                    opacity: heroOpacity,
-                  }}
+                  } : undefined}
                 >
                   {/* 1. 头像 */}
                   <Avatar size="xl" source={avatarPortrait} showBorder={false} />
