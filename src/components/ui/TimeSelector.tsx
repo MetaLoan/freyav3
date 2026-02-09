@@ -52,6 +52,9 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
   const [visualActiveIndex, setVisualActiveIndex] = useState(-1);
   const [pendingTime, setPendingTime] = useState<Date | null>(null);
 
+  // 滚动进度（用于控制模糊效果）
+  const [scrollProgress, setScrollProgress] = useState(0);
+
   // ============================================================
   // 日期格式化
   // ============================================================
@@ -330,6 +333,38 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
     setVisualActiveIndex(-1);
   }, [onTimeUnitChange]);
 
+  // 监听滚动进度（从 CSS 变量 --sp 读取）
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const updateScrollProgress = () => {
+      const sp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp') || '0');
+      setScrollProgress(sp);
+    };
+
+    // 初始读取
+    updateScrollProgress();
+
+    // 使用 requestAnimationFrame 轮询 CSS 变量变化
+    // 优化：只在滚动时更新（通过检查值是否变化）
+    let rafId: number;
+    let lastSp = 0;
+    const tick = () => {
+      const currentSp = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp') || '0');
+      // 只在值变化时更新 state，减少不必要的重渲染
+      if (Math.abs(currentSp - lastSp) > 0.01) {
+        setScrollProgress(currentSp);
+        lastSp = currentSp;
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   // ============================================================
   // 渲染
   // ============================================================
@@ -352,11 +387,13 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         left: 0,
         right: 0,
         paddingTop: safeAreaTop + spacing.sm,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        // 根据滚动进度动态调整模糊：0px (顶部) → 20px (滚动后)
+        backdropFilter: `blur(${scrollProgress * 20}px)`,
+        WebkitBackdropFilter: `blur(${scrollProgress * 20}px)`,
         backgroundColor: 'transparent', // 完全透明背景
         borderBottom: `1px solid ${palette.white5}`,
         zIndex: 50,
+        transition: 'backdrop-filter 0.2s ease-out', // 平滑过渡
       } : {
         paddingTop: safeAreaTop + spacing.sm,
       }}
