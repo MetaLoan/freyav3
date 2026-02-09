@@ -60,17 +60,9 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: 'transparent',
-          borderTopColor: 'transparent',
-          borderTopWidth: 0,
-          height: TAB_HEIGHT,
-          paddingBottom: 8,
-          paddingTop: 4,
-          elevation: 0,
+          display: 'none', // 隐藏底部导航栏
+          height: 0,
+          overflow: 'hidden',
         },
         tabBarBackground: () => <TabBarBackground />,
         tabBarActiveTintColor: palette.gold400,
