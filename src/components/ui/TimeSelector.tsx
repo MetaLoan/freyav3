@@ -391,7 +391,6 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         backdropFilter: `blur(${scrollProgress * 20}px)`,
         WebkitBackdropFilter: `blur(${scrollProgress * 20}px)`,
         backgroundColor: 'transparent', // 完全透明背景
-        borderBottom: `1px solid ${palette.white5}`,
         zIndex: 50,
         transition: 'backdrop-filter 0.2s ease-out', // 平滑过渡
       } : {
