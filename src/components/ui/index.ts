@@ -17,3 +17,5 @@ export { Badge, Tag } from './Badge';
 export { AppModal } from './AppModal';
 export { BottomNav } from './BottomNav';
 export { MysticalBackground } from './MysticalBackground';
+export { TimeSelector } from './TimeSelector';
+export type { TimeSelectorProps, TimeUnit } from './TimeSelector';

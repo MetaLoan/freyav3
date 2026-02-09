@@ -21,7 +21,8 @@ import { useSafeAreaStyle } from '../../src/hooks/useSafeArea';
 import { palette } from '../../src/config/theme';
 import { layout } from '../../src/config/layout';
 import { s, vs, fs, wp, spacing, fontSize, radius, iconSize } from '../../src/utils/responsive';
-import { AppCard, Button, Avatar, Badge, MysticalBackground } from '../../src/components/ui';
+import { AppCard, Button, Avatar, Badge, MysticalBackground, TimeSelector } from '../../src/components/ui';
+import type { TimeUnit } from '../../src/components/ui';
 // @ts-ignore
 import totemPattern from '../../assets/totem-pattern.png';
 // @ts-ignore
@@ -199,6 +200,10 @@ export default function DiscoverScreen() {
   const safeArea = useSafeAreaStyle(['top']);
   const router = useRouter();
 
+  // 时间选择器状态
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [timeUnit, setTimeUnit] = useState<TimeUnit>('Day');
+
   // 动态测量 Hero 实际渲染高度
   const [heroHeight, setHeroHeight] = useState(HERO_HEIGHT_DEFAULT);
   const handleHeroLayout = useCallback((e: any) => {
@@ -333,7 +338,7 @@ export default function DiscoverScreen() {
 
                   {/* 2. 标题 */}
                   <Text fontFamily="$heading" fontSize={fontSize.base} fontWeight="400" color={palette.gold200} textAlign="center" numberOfLines={1}>
-                    Overall Energy on Feb 8, 2026
+                    Overall Energy on {selectedTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </Text>
 
                   {/* 3. 能量值 */}
@@ -408,6 +413,14 @@ export default function DiscoverScreen() {
             )`,
           }}
         >
+
+          {/* ===== 时间选择器 ===== */}
+          <TimeSelector
+            selectedTime={selectedTime}
+            timeUnit={timeUnit}
+            onTimeChange={setSelectedTime}
+            onTimeUnitChange={setTimeUnit}
+          />
 
           {/* ===== 五维运势 ===== */}
           <YStack marginTop={spacing.lg}>

@@ -30,6 +30,19 @@ export default function Root({ children }: { children: React.ReactNode }) {
         }} />
         
         <ScrollViewStyleReset />
+        
+        {/* 隐藏滚动条样式 */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            .no-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            .no-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `
+        }} />
       </head>
       <body>{children}</body>
     </html>
